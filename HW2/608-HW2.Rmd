@@ -1,0 +1,146 @@
+---
+title: "608 Assignment 2"
+author: "James Topor"
+date: "February 14, 2017"
+output: html_document
+---
+
+```{r, eval = FALSE}
+### NOTE: This code chunk was executed once to create a consolidated file containing
+# all PLUTO data for each of the 5 boroughs of NYC. Once that file has been created the
+# code is no longer needed and the code chunk was set to "eval = FALSE"
+
+# load all data files into a single data frame
+
+# bronx
+m_df <- read.csv("c:/SQLData/608/HW2/BX.csv", header = TRUE, stringsAsFactors = FALSE)
+
+# brooklyn
+t_df <- read.csv("c:/SQLData/608/HW2/BK.csv", header = TRUE, stringsAsFactors = FALSE)
+m_df <- rbind(m_df, t_df)
+rm(t_df)
+
+# manhattan
+t_df <- read.csv("c:/SQLData/608/HW2/MN.csv", header = TRUE, stringsAsFactors = FALSE)
+m_df <- rbind(m_df, t_df)
+rm(t_df)
+
+# queens
+t_df <- read.csv("c:/SQLData/608/HW2/QN.csv", header = TRUE, stringsAsFactors = FALSE)
+m_df <- rbind(m_df, t_df)
+rm(t_df)
+
+# staten island
+t_df <- read.csv("c:/SQLData/608/HW2/SI.csv", header = TRUE, stringsAsFactors = FALSE)
+m_df <- rbind(m_df, t_df)
+rm(t_df)
+
+# now write combined dataframe to disk as a single file
+write.csv(m_df, file="C:/SQLData/608/HW2/AllNYC.csv", col.names = TRUE)
+
+```
+
+### 1. Build a graph to help the city determine when most buildings were constructed.
+
+```{r}
+library(dplyr)
+library(ggplot2)
+library(scales)
+library(bigvis)
+library(ggthemes)
+
+# read master data set
+m_df <- read.csv("c:/SQLData/608/HW2/AllNYC.csv", header = TRUE, stringsAsFactors = FALSE)
+
+# start by checking for NA's / zeroes in YearBuilt
+nrow(subset(m_df, YearBuilt == 0))
+```
+
+Of the 858,370 records in the combined data set, 44,180, or roughly 5%, have a value of ZERO for YearBuilt.
+
+```{r, fig.width = 9, fig.height = 7}     
+# get counts of YearBuilt for all years > 1850
+df2 <- data.frame(table(subset(m_df, YearBuilt >= 1850 & YearBuilt < 2017)$YearBuilt), stringsAsFactors = FALSE)
+
+# convert year field back to numeric since it somehow ends up as a factor in above
+df2$Var1 <- as.numeric(as.character(df2$Var1))
+colnames(df2) <- c("Year", "Nbldgs")
+
+ggplot(df2, aes(x=Year, y = Nbldgs)) + 
+  geom_bar(stat = "identity") + 
+  scale_x_continuous("Year", breaks= seq(1850, 2020, by=5)) +
+  theme(axis.text.x = element_text(angle=90, hjust=1, vjust=.5)) +
+  ylab("Number of Buildings Built") +
+  ggtitle("How many buildings were built in NYC: 1850 - Present")
+
+
+# now do same procedure using bigvis
+yr_blt <- condense(bin(m_df$YearBuilt, 1, origin = 1850))
+autoplot(yr_blt) + xlim(1850, 2016) + ylim(0, 100000) + ylab('Number of Buildings Built')
+
+
+```
+
+__Is there anything in the results that causes you to question the accuracy of the data?__
+
+For the period spanning roughly 1900 (including 1899) through 1980, the number of buildings built appears to spike dramatically every five years. This may be indicative of the data having been backfilled with approximate YearBuilt values for buildings whose exact year of construction was not recorded at the time they were actually built.
+
+_____
+
+### 2. Create a graph that shows how many buildings of a certain number of floors were built in each year (note: you may want to use a log scale for the number of buildings). It should be clear when 20-story buildings, 30-story buildings, and 40-story buildings were first built in large numbers.
+
+```{r, fig.width = 9, fig.height = 7}
+# filter out bad data, e.g. NumFloors < 0, lots that are too small to build on, 
+q2_df <- m_df %>%
+  filter(YearBuilt >= 1850 & YearBuilt <= 2017 & LotArea > 100 &
+           AssessTot < 100000000 & AssessTot > 0 & NumFloors > 0)
+
+# use a 2-dimensional bin to tally both number of floors built of a given size + year built
+
+# can be done without using "with" but then need to rename columns
+# However, no need to use find_width() function or set bin size "n_bins"
+#nf_built <- condense(bin(q2_df$NumFloors, 1, origin = 0), bin(q2_df$YearBuilt, 1, origin = 1850))
+
+# need to set bin size appropriately before binning
+n_bins = 2017 - 1850
+nf_built = with(q2_df, 
+                condense(bin(NumFloors, find_width(NumFloors, n_bins)),
+                         bin(YearBuilt, find_width(YearBuilt, n_bins))))
+
+ggplot(nf_built, aes(NumFloors, YearBuilt, fill=.count )) + 
+  scale_y_continuous("Year", breaks= seq(1850, 2020, by=10)) +
+  scale_x_continuous("Number of Floors", breaks= seq(0, 130, by=10)) +
+  scale_fill_gradient("# of Buildings", trans = "log", low = "orange", high = "blue", breaks = 10^(0:5)) +
+  geom_vline(xintercept=20, linetype="dashed") +
+  geom_vline(xintercept=30, linetype="dashed") +
+  geom_vline(xintercept=40, linetype="dashed") +
+  coord_flip() +
+  ggtitle("Number of Buildings with 'y' # of Floors Built Each Year") +
+  geom_raster()
+```
+
+The graph above shows that 20 story buildings appear to have first been built in large numbers starting in roughly 1900. 30 and 40 story buildings both appear to have first been built in large numbers between 1925 and 1930.
+
+_____
+
+### 3. Your boss suspects that buildings constructed during the US's involvement in World War II (1941-1945) are more poorly constructed than those before and after the war due to the high cost of materials during those years. She thinks that, if you calculate assessed value per floor, you will see lower values for buildings at that time vs before or after. Construct a chart/graph to see if she's right.
+
+To properly calculate the assessed value per floor, we need to __exclude__ the assessed value of the land due to the fact that the assessed value of any improvements on a parcel of land are exclusive of the assessed value of the land itself. In other words, both assessments are calculated separately and reflect completely different metrics. As such, to derive the assessed value of the structure we subtract the assessed value of the land from the total assessed value of the parcel, which is a sum of the assessed values of the land and improvements.
+
+```{r, fig.width = 9, fig.height = 7}
+# assess_pf <- (q2_df$AssessTot - q2_df$AssessLand) / q2_df$NumFloors
+
+apf <- with(q2_df, condense(bin(YearBuilt, 1), z= (AssessTot - AssessLand)/NumFloors ))
+
+ggplot(apf, aes(YearBuilt, .mean, fill=.count )) + 
+  xlim(1930, 1955) + 
+  scale_y_continuous("Avg Assessed Value per Floor", limits = c(0, 600000)) +
+  theme(legend.position = "none") + 
+  geom_line() + 
+  geom_point() +
+  geom_smooth(se = FALSE, lty = 5, col = "orange") + 
+  ggtitle("Average Assessed Value per Floor by Year: 1930 - 1955")
+
+```
+
+As the plot above shows, the assessed value per floor does appear to have decreased starting in roughly 1938, and did not recover to pre-war levels until approximately 1947. As such, the boss appears to be correct in her assumption that calculating an assessed value per floor shows lower values for buildings constructed during World War II vs. before or after the war.
