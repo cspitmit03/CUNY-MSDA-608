@@ -77,7 +77,7 @@ function(input, output) {
   # fetch required national data for display
   natl_dat <- reactive({ natl_dat <- subset(nat_imp, Cause == input$cause) })
   
-  # Fill in the spot we created for a plot
+  # Define weighted average % change curve plot
   output$MortImpPlot <- renderPlot({
     
     # fetch required state data for display
@@ -96,7 +96,7 @@ function(input, output) {
         state_imp <- rbind(state_imp, data.frame(Year = yr, 
                                                      Change = round((new_rate - old_rate)/old_rate, 4)))
       } # end if old_rate
-        
+      
     } # end for yr
 
     # mult change amt by 100 to get percentage rate of change
