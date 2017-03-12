@@ -19,12 +19,11 @@ function(input, output) {
   # fetch required data for display
   crude <- reactive({ crude <- subset(DR_2010, ICD.Chapter == input$cause)   })
   
-  # Fill in the spot we created for a plot
+  # Define Cleveland plot
   output$causePlot <- renderPlot({
     
     # display graphic of company counts by state in descending order
     ggplot(crude(), aes(x= Crude.Rate, y= reorder(State, Crude.Rate))) +
-      # xlim(0, max(crude()$Crude.Rate)) +
       scale_x_continuous(limits=c(0, max(crude()$Crude.Rate) + 4), expand = c(0, 0)) +
       geom_segment(aes(yend=State), xend=0, colour="grey50", size = 1.1) +
       geom_point(size=4, colour = "firebrick") +
