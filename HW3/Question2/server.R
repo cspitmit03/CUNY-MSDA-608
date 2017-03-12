@@ -115,8 +115,8 @@ function(input, output) {
       # plot a weighted average for the % change in national mortality rate
       geom_smooth(aes(y = National_Avg, col = "National_Avg"), se = FALSE, lty = 1) +
       
+      # plot dashed horizontal line at y = 0
       geom_hline(yintercept=0, linetype="dashed") +
-      # ylim(-p_max, p_max) +
       
       theme(panel.grid.major.y = element_blank(), axis.title=element_text(size=15,face="bold"), 
         axis.text.y = element_text(size = 13, face = "bold"), 
