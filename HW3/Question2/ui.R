@@ -2,7 +2,6 @@
 
 m_df <- read.csv("https://raw.githubusercontent.com/charleyferrari/CUNY_DATA608/master/lecture3/data/cleaned-cdc-mortality-1999-2010-2.csv", header = TRUE, stringsAsFactors = FALSE)
 
-
 # find cause of death 2010 for all states
 DR_2010 <- subset(m_df, Year == 2010)
 
@@ -15,7 +14,6 @@ colnames(causes) <- "cause"
 
 # remove pregnancy cause due to large amounts of missing data
 causes <- subset(causes, cause != "Pregnancy, childbirth and the puerperium")
-
 causes <- as.list(causes$cause)
 
 # Use a fluid Bootstrap layout
@@ -44,5 +42,4 @@ fluidPage(
   
   hr(),
   helpText("Data provided by CDC Wonder: https://wonder.cdc.gov/ucd-icd10.html")
-
 )
