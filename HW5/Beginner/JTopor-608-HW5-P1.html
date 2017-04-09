@@ -1,0 +1,100 @@
+<html>
+
+<head><title>James Topor DATA 608 Spring 2017 HW5 P1</title></head>
+
+<body>
+
+<!-- Part 1, Problem 1: Create a function to reverse any word that is typed in. This can be typed into
+ either an input box or an alert box, and then print the result in a box or on the webpage
+-->
+
+<script type="text/javascript">
+
+document.write('<br><p>Enter a text string to reverse')
+
+// NOTE: the approach used for this function is taken from the following tutorial:
+// https://medium.freecodecamp.com/how-to-reverse-a-string-in-javascript-in-3-different-ways-75e4763c68cb
+
+function rev_string() {
+	var input_string = document.getElementById("str_inp").value
+	// convert the input string to a js array
+	var s_arr = input_string.split('');
+	// use the array.reverse method to reverse each word
+	var arr_rev = s_arr.reverse();
+	// now combine the reversed substrings into a single string via arr.join method
+	var out_str = arr_rev.join('');
+	
+	var out_txt = 'Reverse of the string you entered is: ' + out_str
+	document.getElementById("target").innerHTML = out_txt
+}
+
+</script>
+
+
+<p>
+<form onkeypress="return event.keyCode != 13;">
+    <input id="str_inp" size="40">
+    <input type="button" value="Reverse" onClick="rev_string();">
+</form>
+</p>
+
+<div id="target"></div>
+
+
+
+<!-- Part 1, Problem 2: Create a function that takes an input number and prints a table with the first
+ 20 multiples of that number, in order 5x4
+-->
+<script type="text/javascript">
+document.write('<br><p>Enter a number to see its first 20 multiplicants')
+
+function mult_20() {
+	var input_num = document.getElementById("num_inp").value
+	if (isNaN(input_num)) {
+		alert("Please enter a number")
+	}
+	else {
+		// create a variable to store the table + init with js table identifier
+		var out_table = '<table>';
+		// initialize the multiplier - will range from 1 to 20 for EVERY input
+		var m_inc = 1;
+		
+		// now fill in the table by row|col: 5 rows, 4 columns
+		for (var trow = 1; trow <= 5; trow++) {
+			// add a row separator to the table
+			out_table = out_table + '<tr>';
+			
+			// now add data values to 4 columns
+			for (var tcol = 1; tcol <= 4; tcol++) {
+				// add a column value to the table
+				out_table = out_table + '<td>' + (input_num * m_inc) + '</td>';
+				// increment the multiplier
+				m_inc++;		
+			} // end for tcol
+			
+			// add a row terminator to the table
+			out_table = out_table + '</tr>';
+			
+		} // end for trow
+			
+		// add a table terminator
+		out_table = out_table + '</table>';
+		
+		var out_txt = 'The first 20 multiplicants of ' + input_num + ' are: ' + out_table
+		document.getElementById("target2").innerHTML = out_txt
+	} // end else
+}
+
+</script>
+
+<p>
+<form onkeypress="return event.keyCode != 13;">
+    <input id="num_inp" size="3">
+    <input type="button" value="20 Mult" onClick="mult_20();">
+</form>
+</p>
+
+<div id="target2"></div>
+
+</body>
+</html>

@@ -1,0 +1,153 @@
+<html>
+
+<head><title>James Topor DATA 608 Spring 2017 HW5 P2</title></head>
+
+<body>
+
+<!-- Part 2, Problem 1: Create a function to load the presidents.csv data and display the data as an html
+table.
+-->
+
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/d3/4.7.4/d3.min.js"></script>
+
+<script type="text/javascript">
+
+document.write('<br><p>View the Content of presidents.csv');
+
+function pres_loader() {
+	// define an array to house the csv contents
+	var pres_data = [];
+
+	// load the contents of presidents.csv into a js object
+	d3.csv("presidents.csv", function(data) { 
+		// console.log(data)
+		console.log(data.length);
+		pres_data = data;
+		
+		console.log(pres_data);
+		console.log(pres_data[0]["Name"]);
+
+		
+		// get number of rows for table
+		maxrow = pres_data.length;
+		// get number of columns for table
+		maxcol = pres_data[0].length
+		
+		// now fill in the table by row|col: 5 rows, 4 columns
+		// var out_table  = "<table border = '1'>"
+		var out_table = '<table>';
+		
+		// set headings
+		out_table = out_table + '<tr>' + '<td>' + "Name" + '</td>' +
+								'<td>' + "Height" + '</td>' +
+								'<td>' + "Weight" + '</td>' + '</tr>';
+								
+		for (var trow = 0; trow < maxrow; trow++) {
+			// add a row separator to the table
+			out_table = out_table + '<tr>';
+			
+			// now add data values to columns			
+			out_table = out_table + '<td>' + pres_data[trow]["Name"] + '</td>'
+								  + '<td>' + pres_data[trow]["Height"] + '</td>'
+								  + '<td>' + pres_data[trow]["Weight"] + '</td>';	
+			
+			// add a row terminator to the table
+			out_table = out_table + '</tr>';
+			
+		} // end for trow
+			
+		// add a table terminator
+		out_table = out_table + '</table>';
+		// out_table.style.border = "1px solid black";
+		
+		console.log(out_table)
+		
+		// var out_txt = 'The contents of the file are: ' + out_table
+		document.getElementById("target1").innerHTML = out_table
+	});
+	
+} // end pres_loader
+
+</script>
+
+<p>
+<form onkeypress="return event.keyCode != 13;">
+    <input type="button" value="Load Data" onClick="pres_loader();">
+</form>
+</p>
+<div id="target1"></div>
+
+
+
+
+<!-- Part 2, Problem 2: Create a function that will return the height and weight of a president whose
+name is entered by the user
+-->
+
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/d3/4.7.4/d3.min.js"></script>
+
+<script type="text/javascript">
+
+document.write('<br><p>Enter the name of a president to view their height & weight');
+
+function pres_hw() {
+
+	var pName = document.getElementById("str_inp").value;
+	
+	// define an array to house the csv contents
+	var pres_data = [];
+
+	// load the contents of presidents.csv into a js object
+	d3.csv("presidents.csv", function(data) { 
+		// console.log(data)
+		console.log(data.length);
+		pres_data = data;
+		
+		console.log(pres_data);
+		console.log(pName);
+		console.log(pres_data[0]["Name"]);	
+		
+		// initialize variables for weight + height
+		var pHeight = 0;
+		var pWeight = 0;
+		
+		// get number of rows for table
+		maxrow = pres_data.length;
+		
+		// now search the object array for the name of the president captured at input
+		for (var trow = 0; trow < maxrow; trow++) {
+		    tName = (pres_data[trow]["Name"]).toLowerCase()
+			// if (pres_data[trow]["Name"].toLowerCase() == pName.toLowerCase() ) {
+			if (tName == pName.toLowerCase() ) {
+				pHeight = pres_data[trow]["Height"];
+				pWeight = pres_data[trow]["Weight"];
+				break;
+			} // end if name == pName
+		} // end for trow
+		
+		if (pHeight == 0) {
+			out_text = ("Presidents Name Not Found. Please Try Again")	
+		}
+		else {
+			out_text = "Height = " + pHeight + ", Weight = " + pWeight;
+		}
+		
+		// var out_txt = 'The contents of the file are: ' + out_table
+		document.getElementById("target2").innerHTML = out_text;
+	});
+	
+} // end pres_loader
+
+</script>
+
+<p>
+<form onkeypress="return event.keyCode != 13;">
+	<input id="str_inp" size="40">
+    <input type="button" value="Enter Name" onClick="pres_hw();">
+</form>
+</p>
+
+<div id="target2"></div>
+
+</body>
+</html>
