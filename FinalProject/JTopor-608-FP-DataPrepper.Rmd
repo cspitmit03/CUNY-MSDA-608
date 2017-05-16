@@ -1,0 +1,271 @@
+---
+title: "DATA 608 Spring 2017 Final Project: Data Loader"
+author: "James Topor"
+date: "April 8, 2017"
+output: html_document
+---
+
+Load libraries
+```{r}
+options(stringsAsFactors = FALSE)
+library(knitr)
+library(tidyr, warn.conflicts = FALSE, quietly=TRUE)
+library(dplyr, warn.conflicts = FALSE, quietly=TRUE)
+library(stringr)
+library(WDI)
+```
+
+Load WB country name matrix and remove all aggregate regions
+```{r}
+
+tmp <- as.data.frame(WDI_data[[2]])
+
+wb_ctry <- as.data.frame(WDI_data[[2]], stringsAsFactors = FALSE)
+
+# remove all 'aggregate' regions since there is no way to
+# map them easily
+v_countries <- wb_ctry[wb_ctry$region != "Aggregates",]$country
+
+```
+
+Load life expectancy data
+```{r}
+# load csv file
+l_e.raw <- read.csv("https://raw.githubusercontent.com/jtopor/CUNY-MSDA-608/master/FinalProject/DataFiles/life-expectancy.csv", skip=4, header=TRUE, sep = ",", stringsAsFactors = FALSE)
+
+names(l_e.raw)
+
+# create a new data frame using only those columns that match up to TB data
+l_exp <- data.frame(l_e.raw$Country.Name,
+                    l_e.raw$Country.Code,
+                       l_e.raw$X2000,
+                       l_e.raw$X2001,
+                       l_e.raw$X2002,
+                       l_e.raw$X2003,
+                       l_e.raw$X2004,
+                       l_e.raw$X2005,
+                       l_e.raw$X2006,
+                       l_e.raw$X2007,
+                       l_e.raw$X2008,
+                       l_e.raw$X2009,
+                       l_e.raw$X2010,
+                       l_e.raw$X2011,
+                       l_e.raw$X2012,
+                       l_e.raw$X2013,
+                       l_e.raw$X2014)
+
+# apply meaningful column names that will conform with TB data format
+names(l_exp)<-c("country", "code", "x2000",
+                           "x2001", "x2002", "x2003", "x2004", "x2005",
+                           "x2006", "x2007", "x2008", "x2009", "x2010",
+                           "x2011", "x2012", "x2013", "x2014")
+# display
+kable(head(l_exp), padding=0)
+
+# discard original data frame - no longer needed
+rm(l_e.raw)
+
+#################################
+# Transform Data to long format:
+
+# gather the 'year' columns
+d.df2 <- gather(l_exp, year, life_exp, x2000:x2014, na.rm = FALSE)
+kable(head(d.df2))
+
+# clean the "Year" column of the letter 'x'
+d.df2$year <- str_extract(d.df2$year, "[[:digit:]]{4}")
+kable(head(d.df2))
+
+# sort the data so it is ordered by country then year
+d.df2 <- arrange(d.df2, country, year)
+kable(head(d.df2))
+
+le.df <- d.df2
+# remove l_exp dataframe
+rm(l_exp)
+```
+
+Load healthcare expenditure data
+```{r}
+hc.raw <- read.csv("https://raw.githubusercontent.com/jtopor/CUNY-MSDA-608/master/FinalProject/DataFiles/Healthcare-Expenditure.csv", skip=4, header=TRUE, sep = ",", stringsAsFactors = FALSE)
+
+# create a new data frame using only those columns that match up to TB data
+hc.df <- data.frame(hc.raw$Country.Name, 
+                    hc.raw$Country.Code,
+                       hc.raw$X2000,
+                       hc.raw$X2001,
+                       hc.raw$X2002,
+                       hc.raw$X2003,
+                       hc.raw$X2004,
+                       hc.raw$X2005,
+                       hc.raw$X2006,
+                       hc.raw$X2007,
+                       hc.raw$X2008,
+                       hc.raw$X2009,
+                       hc.raw$X2010,
+                       hc.raw$X2011,
+                       hc.raw$X2012,
+                       hc.raw$X2013,
+                       hc.raw$X2014)
+
+# apply meaningful column names that will conform with TB data format
+names(hc.df)<-c("country", "code", "x2000",
+                           "x2001", "x2002", "x2003", "x2004", "x2005",
+                           "x2006", "x2007", "x2008", "x2009", "x2010",
+                           "x2011", "x2012", "x2013", "x2014")
+# display
+kable(head(hc.df), padding=0)
+
+# discard original data frame - no longer needed
+rm(hc.raw)
+
+#################################
+# Transform Data to long format:
+
+# gather the 'year' columns
+d.df2 <- gather(hc.df, year, hc_exp, x2000:x2014, na.rm = FALSE)
+kable(head(d.df2))
+
+# clean the "Year" column of the letter 'x'
+d.df2$year <- str_extract(d.df2$year, "[[:digit:]]{4}")
+kable(head(d.df2))
+
+# sort the data so it is ordered by country then year
+d.df2 <- arrange(d.df2, country, year)
+kable(head(d.df2))
+
+hc.df <- d.df2
+```
+
+Load GNI data
+```{r}
+gni.raw <- read.csv("https://raw.githubusercontent.com/jtopor/CUNY-MSDA-608/master/FinalProject/DataFiles/GNI-PerCap.csv", skip=4, header=TRUE, sep = ",", stringsAsFactors = FALSE)
+
+# create a new data frame using only those columns that match up to TB data
+gni.df <- data.frame(gni.raw$Country.Name, 
+                    gni.raw$Country.Code,
+                       gni.raw$X2000,
+                       gni.raw$X2001,
+                       gni.raw$X2002,
+                       gni.raw$X2003,
+                       gni.raw$X2004,
+                       gni.raw$X2005,
+                       gni.raw$X2006,
+                       gni.raw$X2007,
+                       gni.raw$X2008,
+                       gni.raw$X2009,
+                       gni.raw$X2010,
+                       gni.raw$X2011,
+                       gni.raw$X2012,
+                       gni.raw$X2013,
+                       gni.raw$X2014)
+
+# apply meaningful column names that will conform with TB data format
+names(gni.df)<-c("country", "code", "x2000",
+                           "x2001", "x2002", "x2003", "x2004", "x2005",
+                           "x2006", "x2007", "x2008", "x2009", "x2010",
+                           "x2011", "x2012", "x2013", "x2014")
+# display
+kable(head(gni.df), padding=0)
+
+# discard original data frame - no longer needed
+rm(gni.raw)
+
+#################################
+# Transform Data to long format:
+
+# gather the 'year' columns
+d.df2 <- gather(gni.df, year, percap_gni, x2000:x2014, na.rm = FALSE)
+kable(head(d.df2))
+
+# clean the "Year" column of the letter 'x'
+d.df2$year <- str_extract(d.df2$year, "[[:digit:]]{4}")
+kable(head(d.df2))
+
+# sort the data so it is ordered by country then year
+d.df2 <- arrange(d.df2, country, year)
+kable(head(d.df2))
+
+gni.df <- d.df2
+```
+
+Load TB data
+```{r}
+tb.raw <- read.csv("https://raw.githubusercontent.com/jtopor/CUNY-MSDA-608/master/FinalProject/DataFiles/TB-per-100K.csv", skip=4, header=TRUE, sep = ",", stringsAsFactors = FALSE)
+
+# create a new data frame using only those columns that match up to TB data
+tb.df <- data.frame(tb.raw$Country.Name, 
+                    tb.raw$Country.Code,
+                       tb.raw$X2000,
+                       tb.raw$X2001,
+                       tb.raw$X2002,
+                       tb.raw$X2003,
+                       tb.raw$X2004,
+                       tb.raw$X2005,
+                       tb.raw$X2006,
+                       tb.raw$X2007,
+                       tb.raw$X2008,
+                       tb.raw$X2009,
+                       tb.raw$X2010,
+                       tb.raw$X2011,
+                       tb.raw$X2012,
+                       tb.raw$X2013,
+                       tb.raw$X2014)
+
+# apply meaningful column names that will conform with TB data format
+names(tb.df)<-c("country", "code", "x2000",
+                           "x2001", "x2002", "x2003", "x2004", "x2005",
+                           "x2006", "x2007", "x2008", "x2009", "x2010",
+                           "x2011", "x2012", "x2013", "x2014")
+# display
+kable(head(tb.df), padding=0)
+
+# discard original data frame - no longer needed
+rm(tb.raw)
+
+#################################
+# Transform Data to long format:
+
+# gather the 'year' columns
+d.df2 <- gather(tb.df, year, tb_per100K, x2000:x2014, na.rm = FALSE)
+kable(head(d.df2))
+
+# clean the "Year" column of the letter 'x'
+d.df2$year <- str_extract(d.df2$year, "[[:digit:]]{4}")
+kable(head(d.df2))
+
+# sort the data so it is ordered by country then year
+d.df2 <- arrange(d.df2, country, year)
+kable(head(d.df2))
+
+tb.df <- d.df2
+
+# remove temporary data frame from memory
+rm(d.df2)
+```
+
+
+Consolidate all 4 variables into a single data frame and write the file to disk
+```{r}
+# use one of the 4 variables as the basis for the new consolidated data frame
+wb.df <- le.df
+
+wb.df$life_exp <- round(wb.df$life_exp, 2)
+# append healthcare exp per capita to new df
+wb.df["hc_exp"] <- round(hc.df$hc_exp, 2)
+wb.df["gni_percap"] <- gni.df$percap_gni
+wb.df["tb_per100K"] <- tb.df$tb_per100K
+
+# check results
+kable(head(wb.df))
+
+# now remove all aggregate regions from data frame - should result in 212 unique names
+wb.df <- subset(wb.df, country %in% v_countries)
+
+# verify length is 212
+length(unique(wb.df$country))
+
+write.csv(wb.df, "c:/SQLData/608/FP/wb2.csv", row.names=FALSE)
+
+# test read of file from Github
+# rds_2 <- read.csv("https://raw.githubusercontent.com/jtopor/CUNY-MSDA-608/master/FinalProject/DataFiles/wb2.csv", header=TRUE, sep = ",", stringsAsFactors = FALSE)
